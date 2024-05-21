@@ -1,54 +1,78 @@
+// src/App.js
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import products from './products';
+import Navbar from './Navbar';
+import { DisplayProducts, ProductModal } from './DisplayProducts';
+import Cart from './Cart';
 
 function App() {
   const [cart, setCart] = useState({});
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [show, setShow] = useState(false);
 
   const handleQuantityChange = (productId, quantity) => {
+    if (quantity < 0) return;
     setCart(prevCart => ({
       ...prevCart,
-      [productId]: quantity,
+      [productId]: isNaN(quantity) ? 0 : quantity,
     }));
+  };
+
+  const handleAdd = (productId) => {
+    setCart(prevCart => ({
+      ...prevCart,
+      [productId]: (prevCart[productId] || 0) + 1,
+    }));
+  };
+
+  const handleSubtract = (productId) => {
+    setCart(prevCart => {
+      const newQuantity = (prevCart[productId] || 0) - 1;
+      if (newQuantity < 0) return prevCart;
+      return {
+        ...prevCart,
+        [productId]: newQuantity,
+      };
+    });
   };
 
   const getTotalItems = () => {
     return Object.values(cart).reduce((total, qty) => total + qty, 0);
   };
 
+  const handleShowProduct = (product) => {
+    setSelectedProduct(product);
+    setShow(true);
+  };
+
+  const handleClose = () => {
+    setShow(false);
+  };
+
   return (
-    <div className="container">
-      <header className="bg-primary text-white text-center py-4 mb-4">
-        <h1>Shop to React</h1>
-        <div>
-          <span className="mr-2">🛒</span>
-          <span>{getTotalItems()} items</span>
-        </div>
-      </header>
-      <div className="row">
-        {products.map(product => (
-          <div className="col-md-6 mb-4" key={product.id}>
-            <div className="card">
-              <img src={product.image} className="card-img-top" alt={product.desc} />
-              <div className="card-body">
-                <h5 className="card-title">{product.desc}</h5>
-                <div className="d-flex align-items-center">
-                  <label htmlFor={`quantity-${product.id}`} className="mr-2">Quantity:</label>
-                  <input
-                    type="number"
-                    id={`quantity-${product.id}`}
-                    value={cart[product.id] || 0}
-                    onChange={(e) => handleQuantityChange(product.id, parseInt(e.target.value, 10))}
-                    className="form-control"
-                    style={{ width: '80px' }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+    <Router>
+      <Navbar totalItems={getTotalItems()} />
+      <div className="container">
+        <Routes>
+          <Route path="/" element={
+            <DisplayProducts
+              products={products}
+              cart={cart}
+              handleQuantityChange={handleQuantityChange}
+              handleShowProduct={handleShowProduct}
+              handleAdd={handleAdd}
+              handleSubtract={handleSubtract}
+            />
+          } />
+          <Route path="/cart" element={<Cart cart={cart} products={products} />} />
+        </Routes>
       </div>
-    </div>
+      {selectedProduct && (
+        <ProductModal product={selectedProduct} show={show} handleClose={handleClose} />
+      )}
+    </Router>
   );
 }
 
