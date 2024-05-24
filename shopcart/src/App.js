@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -6,6 +5,8 @@ import products from './products';
 import Navbar from './Navbar';
 import { DisplayProducts, ProductModal } from './DisplayProducts';
 import Cart from './Cart';
+import Checkout from './Checkout';
+import SignIn from './SignIn';
 
 function App() {
   const [cart, setCart] = useState({});
@@ -67,6 +68,8 @@ function App() {
             />
           } />
           <Route path="/cart" element={<Cart cart={cart} products={products} />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/signin" element={<SignIn />} />
         </Routes>
       </div>
       {selectedProduct && (
